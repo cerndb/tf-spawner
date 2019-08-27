@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: NAME
+  labels:
+    training_attempt: ATTEMPT
+spec:
+  ports:
+  - port: PORT
+    targetPort: TARGET_PORT
+    protocol: TCP
+  selector:
+    app: RUN_SELECTOR
