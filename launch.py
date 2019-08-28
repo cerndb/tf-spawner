@@ -12,6 +12,7 @@ parser.add_argument("-d", "--delete", help="delete resources")
 parser.add_argument("-w", "--workers", help="number of workers", default="8", type=int)
 parser.add_argument("-n", "--namespace", help="k8s namespace", default="default")
 parser.add_argument("-p", "--port", help="grpc port", default="1999", type=int)
+parser.add_argument("-e", "--entrypoint", help="pod entrypoint script path")
 args = parser.parse_args()
 
 NAMESPACE = args.namespace
@@ -57,6 +58,13 @@ with open("pod.yaml") as pod_f:
     pod_template = yaml.safe_load(pod_f)
 
 
+def gen_script(entrypoint_path):
+    with open(entrypoint_path) as script_f:
+        lines = script_f.read().splitlines()
+        sh_script = ["/bin/bash", "-c", "&& ".join(lines)]
+        return sh_script
+
+
 def gen_services(n_services, selector_name):
     for i in range(n_services):
         service_body = service_template
@@ -69,6 +77,8 @@ def gen_services(n_services, selector_name):
 
 
 def gen_pods(n_pods, selector_name):
+    if args.entrypoint:
+        entrypoint = gen_script(args.entrypoint)
     for i in range(n_pods):
         pod_body = pod_template
         pod_body["metadata"]["name"] = f"worker{i}"
@@ -86,6 +96,8 @@ def gen_pods(n_pods, selector_name):
         pod_body["spec"]["containers"][0]["env"] = []
         for k, v in env.items():
             pod_body["spec"]["containers"][0]["env"].append({"name": k, "value": v})
+        if args.entrypoint:
+            pod_body["spec"]["containers"][0]["command"] = entrypoint
         v1.create_namespaced_pod(NAMESPACE, pod_body)
 
 

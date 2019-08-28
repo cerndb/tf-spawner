@@ -1,8 +1,8 @@
-#Installation
+# Installation
 
 Run `pip install kubernetes namesgenerator`
 
-#Usage
+# Usage
 
 ```
 usage: launch.py [-h] [-d DELETE] [-w WORKERS] [-n NAMESPACE] [-p PORT] [path]
@@ -20,9 +20,15 @@ optional arguments:
                         k8s namespace (default: default)
   -p PORT, --port PORT  grpc port (default: 1999)
 
+  -e ENTRYPOINT, --entrypoint ENTRYPOINT
+                          pod entrypoint script path (default: None)
+
 ```
 
+## Example
 
-### Old resources deletion
+In order to use the example in `examples/mnist.py` you will need to provide an image with the tensorflow_datasets package or to use the entrypoint specified in `examples/entrypoint.sh` which installs the package before running the script.
+
+## Old resources deletion
 In order to delete the resources, you have to run `python launch.py -d random_name` where `random_name` is the value shown during creation
 
