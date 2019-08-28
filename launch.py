@@ -24,7 +24,7 @@ parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFo
 parser.add_argument("path", help="path of script to run", nargs="?")
 parser.add_argument("-d", "--delete", help="delete resources")
 parser.add_argument("-w", "--workers", help="number of workers", default="8", type=int)
-parser.add_argument("-n", "--namespace", help="k8s namespace", default="default")
+parser.add_argument("-n", "--namespace", help="k8s namespace")
 parser.add_argument("-p", "--port", help="grpc port", default="1999", type=int)
 parser.add_argument("-e", "--entrypoint", help="pod entrypoint script path")
 parser.add_argument(
@@ -35,11 +35,14 @@ parser.add_argument(
 )
 args = parser.parse_args()
 
-NAMESPACE = args.namespace
 NUM_NODES = args.workers
 GRPC_PORT = args.port
 
 config.load_kube_config()
+if args.namespace:
+    NAMESPACE = args.namespace
+else:
+    NAMESPACE = config.list_kube_config_contexts()[1]["context"]["namespace"]
 
 v1 = client.CoreV1Api()
 
