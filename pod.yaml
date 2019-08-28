@@ -8,7 +8,6 @@ metadata:
 spec:
   containers:
     - name: tensorflow
-      image: tensorflow/tensorflow:2.0.0b1-py3
       resources:
         requests:
           memory: "20Gi"

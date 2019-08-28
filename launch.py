@@ -1,3 +1,17 @@
+#   Copyright 2019 Riccardo Castellotti
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+
 import argparse
 import json
 import os
@@ -13,6 +27,12 @@ parser.add_argument("-w", "--workers", help="number of workers", default="8", ty
 parser.add_argument("-n", "--namespace", help="k8s namespace", default="default")
 parser.add_argument("-p", "--port", help="grpc port", default="1999", type=int)
 parser.add_argument("-e", "--entrypoint", help="pod entrypoint script path")
+parser.add_argument(
+    "-i",
+    "--image",
+    help="container image for the pod to use",
+    default="tensorflow/tensorflow:2.0.0b1-py3",
+)
 args = parser.parse_args()
 
 NAMESPACE = args.namespace
@@ -94,6 +114,7 @@ def gen_pods(n_pods, selector_name):
             pod_body["spec"]["containers"][0]["env"].append({"name": k, "value": v})
         if args.entrypoint:
             pod_body["spec"]["containers"][0]["command"] = entrypoint
+        pod_body["spec"]["containers"][0]["image"] = args.image
         v1.create_namespaced_pod(NAMESPACE, pod_body)
 
 
