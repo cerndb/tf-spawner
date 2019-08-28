@@ -88,10 +88,6 @@ def gen_pods(n_pods, selector_name):
             "TF_CONFIG": gen_tfconfig(names, i),
             "WORKER_NUMBER": str(i),
             "TOT_WORKERS": str(NUM_NODES),
-            "S3_ENDPOINT": "s3.cern.ch",
-            "AWS_ACCESS_KEY_ID": os.environ["AWS_ACCESS_KEY_ID"],
-            "AWS_SECRET_ACCESS_KEY": os.environ["AWS_SECRET_ACCESS_KEY"],
-            "AWS_LOG_LEVEL": "3",
         }
         pod_body["spec"]["containers"][0]["env"] = []
         for k, v in env.items():
