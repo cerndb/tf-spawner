@@ -29,6 +29,8 @@ tfds.disable_progress_bar()
 strategy = tf.distribute.experimental.MultiWorkerMirroredStrategy()
 # tunables
 BATCH_SIZE = 32 * number_workers
+VAL_BATCH_SIZE = 2000
+EPOCHS = 10
 
 BUFFER_SIZE = 10000
 
@@ -42,8 +44,8 @@ def scale(image, label):
 datasets, info = tfds.load(name="mnist", with_info=True, as_supervised=True)
 
 train_datasets_unbatched = datasets["train"].map(scale).shuffle(BUFFER_SIZE)
-train_datasets = train_datasets_unbatched.batch(BATCH_SIZE)
-
+train_datasets = train_datasets_unbatched.batch(BATCH_SIZE).repeat()
+test_datasets = datasets["test"].map(scale).batch(VAL_BATCH_SIZE)
 
 def build_and_compile_cnn_model():
     model = tf.keras.Sequential(
@@ -63,12 +65,19 @@ def build_and_compile_cnn_model():
     return model
 
 
-train_datasets = train_datasets_unbatched.batch(BATCH_SIZE)
+steps_per_epoch = 60000 // BATCH_SIZE #the are 60000 samples in the training set
+validation_steps = 10000 // VAL_BATCH_SIZE
 with strategy.scope():
     multi_worker_model = build_and_compile_cnn_model()
-multi_worker_model.fit(x=train_datasets, epochs=3, steps_per_epoch=100)
+print("Now training the distributed model")
+history = multi_worker_model.fit(x=train_datasets, epochs=EPOCHS, steps_per_epoch=steps_per_epoch, verbose=1)
 
 
-import time
+print("Finished training.\nNow computing loss and accuracy on the validation dataset:")
+options = tf.data.Options()
+options.experimental_distribute.auto_shard = False
+test_datasets_no_auto_shard = test_datasets.with_options(options)
+multi_worker_model.evaluate(test_datasets_no_auto_shard, steps=validation_steps)
 
-time.sleep(1000)
+exit()
+
