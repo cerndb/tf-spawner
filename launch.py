@@ -21,8 +21,10 @@ import namesgenerator
 
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-parser.add_argument("path", help="path of script to run", nargs="?")
-parser.add_argument("-d", "--delete", help="delete resources")
+parser.add_argument("path", help="full path of the TensorFlow script to run", nargs="?")
+parser.add_argument(
+    "-d", "--delete", help="delete resources matching RUN_LABEL", metavar="RUN_LABEL"
+)
 parser.add_argument("-w", "--workers", help="number of workers", default="8", type=int)
 parser.add_argument("-n", "--namespace", help="k8s namespace")
 parser.add_argument("-p", "--port", help="grpc port", default="1999", type=int)
