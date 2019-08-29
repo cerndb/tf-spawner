@@ -44,7 +44,10 @@ config.load_kube_config()
 if args.namespace:
     NAMESPACE = args.namespace
 else:
-    NAMESPACE = config.list_kube_config_contexts()[1]["context"]["namespace"]
+    try:
+        NAMESPACE = config.list_kube_config_contexts()[1]["context"]["namespace"]
+    except:
+        NAMESPACE = "default"
 
 v1 = client.CoreV1Api()
 
