@@ -116,11 +116,12 @@ def gen_pods(n_pods, selector_name):
             "TF_CONFIG": gen_tfconfig(names, i),
             "WORKER_NUMBER": str(i),
             "TOT_WORKERS": str(NUM_NODES),
-            "S3_ENDPOINT": "s3.cern.ch",
-            "AWS_ACCESS_KEY_ID": os.environ["AWS_ACCESS_KEY_ID"],
-            "AWS_SECRET_ACCESS_KEY": os.environ["AWS_SECRET_ACCESS_KEY"],
-            "AWS_LOG_LEVEL": "3",
         }
+        for env_key in ["AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "AWS_LOG_LEVEL", "S3_ENDPOINT"]:
+            if env_key in os.environ.keys():
+                env.update({env_key: os.environ[env_key]})
+            else: 
+                print(f"error: {env_key} is not in the environment")
         pod_body["spec"]["containers"][0]["env"] = []
         for k, v in env.items():
             pod_body["spec"]["containers"][0]["env"].append({"name": k, "value": v})

@@ -37,6 +37,9 @@ optional arguments:
                         tensorflow/tensorflow:2.0.0b1-py3)
 ```
 
+In order to read data from S3-compatible storage, make sure that you are setting in the environment `S3_ENDPOINT`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`, `AWS_LOG_LEVEL`. You can do so modifying the `s3.secrets.example` in the `examples` folder and sourcing it.
+
+
 ## Example
 
 This runs an mnist example
