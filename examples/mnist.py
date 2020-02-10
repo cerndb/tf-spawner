@@ -47,6 +47,10 @@ train_datasets_unbatched = datasets["train"].map(scale).shuffle(BUFFER_SIZE)
 train_datasets = train_datasets_unbatched.batch(BATCH_SIZE).repeat()
 test_datasets = datasets["test"].map(scale).batch(VAL_BATCH_SIZE)
 
+options = tf.data.Options()
+options.experimental_distribute.auto_shard_policy = tf.data.experimental.AutoShardPolicy.OFF
+train_datasets_no_auto_shard = train_datasets.with_options(options)
+
 def build_and_compile_cnn_model():
     model = tf.keras.Sequential(
         [
@@ -70,12 +74,12 @@ validation_steps = 10000 // VAL_BATCH_SIZE
 with strategy.scope():
     multi_worker_model = build_and_compile_cnn_model()
 print("Now training the distributed model")
-history = multi_worker_model.fit(x=train_datasets, epochs=EPOCHS, steps_per_epoch=steps_per_epoch, verbose=1)
+history = multi_worker_model.fit(x=train_datasets_no_auto_shard, epochs=EPOCHS, steps_per_epoch=steps_per_epoch, verbose=1)
 
 
 print("Finished training.\nNow computing loss and accuracy on the validation dataset:")
 options = tf.data.Options()
-options.experimental_distribute.auto_shard = False
+options.experimental_distribute.auto_shard_policy = tf.data.experimental.AutoShardPolicy.OFF
 test_datasets_no_auto_shard = test_datasets.with_options(options)
 multi_worker_model.evaluate(test_datasets_no_auto_shard, steps=validation_steps)
 
