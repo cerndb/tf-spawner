@@ -17,9 +17,9 @@
 import argparse
 import json
 import os
+import uuid
 import yaml
 from kubernetes import client, config
-import namesgenerator
 
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
@@ -70,7 +70,7 @@ def gen_tfconfig(names, index):
 
 def gen_cfmap(script_path, selector_name):
     with open(script_path) as script_file:
-        v1.create_namespaced_config_map(
+        cm = v1.create_namespaced_config_map(
             NAMESPACE,
             client.V1ConfigMap(
                 data={"training-script.py": script_file.read()},
@@ -79,6 +79,7 @@ def gen_cfmap(script_path, selector_name):
                 ),
             ),
         )
+    return cm
 
 
 with open("service.yaml") as service_f:
@@ -122,7 +123,7 @@ def gen_pods(n_pods, selector_name):
         for env_key in ["AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "AWS_LOG_LEVEL", "S3_ENDPOINT"]:
             if env_key in os.environ.keys():
                 env.update({env_key: os.environ[env_key]})
-            else: 
+            else:
                 print(f"error: {env_key} is not in the environment")
         pod_body["spec"]["containers"][0]["env"] = []
         for k, v in env.items():
@@ -152,8 +153,21 @@ if args.delete:
 else:
     if not args.path:
         raise Exception("no script specified")
-    selector_name = namesgenerator.get_random_name()
+    selector_name = uuid.uuid4()
     print(f"generating with label training_attempt={selector_name}")
-    gen_cfmap(args.path, selector_name)
-    gen_pods(NUM_NODES, selector_name)
-    gen_services(NUM_NODES, selector_name)
+    script_cm = gen_cfmap(args.path, selector_name)
+    try:
+        gen_pods(NUM_NODES, selector_name)
+        gen_services(NUM_NODES, selector_name)
+    except:
+        v1.delete_namespaced_config_map(cm.metadata.name, NAMESPACE)
+        half_created_pods = v1.list_namespaced_pod(
+            NAMESPACE, label_selector=f"training_attempt={args.delete}"
+        )
+        for pod in half_created_pods.items:
+            v1.delete_namespaced_pod(pod.metadata.name, NAMESPACE)
+        half_created_svcs = v1.list_namespaced_service(
+            NAMESPACE, label_selector=f"training_attempt={args.delete}"
+        )
+        for pod in half_created_svcs.items:
+            v1.delete_namespaced_service(pod.metadata.name, NAMESPACE)
