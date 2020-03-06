@@ -17,6 +17,7 @@
 import argparse
 import json
 import os
+import sys
 import uuid
 import yaml
 from kubernetes import client, config
@@ -171,6 +172,16 @@ else:
         selector_name = str(uuid.uuid4())[:8]
     else:
         selector_name = args.tag
+    existing_conf = v1.list_namespaced_config_map(
+            NSPACE, label_selector=f"training_attempt={selector_name}"
+        )
+    if len(existing_conf.items) > 0:
+        print(f"\033[91merror: a job with label {selector_name} exists already")
+        print("to remove this error, either use a different tag (-t) or")
+        print("use a random one with -r \033[0m")
+        # if this sys.exit is removed, the script will go on and remove
+        # silently a job
+        sys.exit()
     try:
         gen_cfmap(args.path, selector_name)
         gen_pods(NUM_NODES, selector_name)
