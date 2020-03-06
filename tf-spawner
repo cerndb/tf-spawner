@@ -155,24 +155,32 @@ if args.delete:
 else:
     if not args.path:
         raise Exception("no script specified")
-    print(f"generating with label training_attempt={selector_name}")
-    script_cm = gen_cfmap(args.path, selector_name)
     if args.randomize_tag:
         selector_name = str(uuid.uuid4())[:8]
     else:
         selector_name = args.tag
     try:
+        gen_cfmap(args.path, selector_name)
         gen_pods(NUM_NODES, selector_name)
         gen_services(NUM_NODES, selector_name)
-    except:
-        v1.delete_namespaced_config_map(cm.metadata.name, NAMESPACE)
+        print(f"generated with label training_attempt={selector_name}")
+    except client.rest.ApiException as e:
+        print("deployment failed, cleaning_up \n",e.body)
+        half_created_cms = v1.list_namespaced_config_map(
+            NAMESPACE, label_selector=f"training_attempt={selector_name}"
+        )
+        for cm in half_created_cms.items:
+            print(f"removing '{cm.metadata.name}' config map")
+            v1.delete_namespaced_config_map(cm.metadata.name, NAMESPACE)
         half_created_pods = v1.list_namespaced_pod(
-            NAMESPACE, label_selector=f"training_attempt={args.delete}"
+            NAMESPACE, label_selector=f"training_attempt={selector_name}"
         )
         for pod in half_created_pods.items:
+            print(f"removing '{pod.metadata.name}' pod")
             v1.delete_namespaced_pod(pod.metadata.name, NAMESPACE)
         half_created_svcs = v1.list_namespaced_service(
-            NAMESPACE, label_selector=f"training_attempt={args.delete}"
+            NAMESPACE, label_selector=f"training_attempt={selector_name}"
         )
-        for pod in half_created_svcs.items:
-            v1.delete_namespaced_service(pod.metadata.name, NAMESPACE)
+        for svc in half_created_svcs.items:
+            print(f"removing '{svc.metadata.name}' service")
+            v1.delete_namespaced_service(svc.metadata.name, NAMESPACE)
