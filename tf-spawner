@@ -21,18 +21,26 @@ import uuid
 import yaml
 from kubernetes import client, config
 
-parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser = argparse.ArgumentParser(
+    formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-parser.add_argument("path", help="full path of the TensorFlow script to run", nargs="?")
+parser.add_argument("path",
+                    help="full path of the TensorFlow script to run",
+                    nargs="?")
 parser.add_argument(
-    "-d", "--delete", help="delete resources matching RUN_LABEL", metavar="RUN_LABEL"
+    "-d", "--delete",
+    help="delete resources matching RUN_LABEL",
+    metavar="RUN_LABEL"
 )
-parser.add_argument("-w", "--workers", help="number of workers", default="8", type=int)
+parser.add_argument("-w", "--workers", help="number of workers",
+                    default="8", type=int)
 parser.add_argument("-n", "--namespace", help="k8s namespace")
 parser.add_argument("-p", "--port", help="grpc port", default="1999", type=int)
 parser.add_argument("-e", "--entrypoint", help="pod entrypoint script path")
 parser.add_argument("-t", "--tag", help="tag resources", default="tf-spawner")
-parser.add_argument("-r", "--randomize-tag", help="create random tag for resources", action="store_true")
+parser.add_argument("-r", "--randomize-tag",
+                    help="create random tag for resources",
+                    action="store_true")
 parser.add_argument(
     "-i",
     "--image",
@@ -46,12 +54,12 @@ GRPC_PORT = args.port
 
 config.load_kube_config()
 if args.namespace:
-    NAMESPACE = args.namespace
+    NSPACE = args.namespace
 else:
     try:
-        NAMESPACE = config.list_kube_config_contexts()[1]["context"]["namespace"]
-    except:
-        NAMESPACE = "default"
+        NSPACE = config.list_kube_config_contexts()[1]["context"]["namespace"]
+    except Exception:
+        NSPACE = "default"
 
 v1 = client.CoreV1Api()
 
@@ -59,9 +67,9 @@ names = [f"worker{i}:{GRPC_PORT}" for i in range(NUM_NODES)]
 
 
 def gen_tfconfig(names, index):
-    ###TF_CONFIG={"cluster": {"worker":
-    ###     ["worker0:1999", "worker1:1999", "worker2:1999"]},
-    ###   "task": {"type": "worker", "index": 0}}
+    # TF_CONFIG={"cluster": {"worker":
+    #      ["worker0:1999", "worker1:1999", "worker2:1999"]},
+    #    "task": {"type": "worker", "index": 0}}
 
     tfconfig = {}
     tfconfig["cluster"] = {}
@@ -73,7 +81,7 @@ def gen_tfconfig(names, index):
 def gen_cfmap(script_path, selector_name):
     with open(script_path) as script_file:
         cm = v1.create_namespaced_config_map(
-            NAMESPACE,
+            NSPACE,
             client.V1ConfigMap(
                 data={"training-script.py": script_file.read()},
                 metadata=client.V1ObjectMeta(
@@ -106,7 +114,7 @@ def gen_services(n_services, selector_name):
         service_body["spec"]["ports"][0]["targetPort"] = GRPC_PORT
         service_body["metadata"]["name"] = f"worker{i}"
         service_body["metadata"]["labels"]["training_attempt"] = selector_name
-        v1.create_namespaced_service(NAMESPACE, service_body)
+        v1.create_namespaced_service(NSPACE, service_body)
 
 
 def gen_pods(n_pods, selector_name):
@@ -122,36 +130,40 @@ def gen_pods(n_pods, selector_name):
             "WORKER_NUMBER": str(i),
             "TOT_WORKERS": str(NUM_NODES),
         }
-        for env_key in ["AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "AWS_LOG_LEVEL", "S3_ENDPOINT"]:
+        for env_key in ["AWS_ACCESS_KEY_ID",
+                        "AWS_SECRET_ACCESS_KEY",
+                        "AWS_LOG_LEVEL",
+                        "S3_ENDPOINT"]:
             if env_key in os.environ.keys():
                 env.update({env_key: os.environ[env_key]})
             else:
                 print(f"error: {env_key} is not in the environment")
         pod_body["spec"]["containers"][0]["env"] = []
         for k, v in env.items():
-            pod_body["spec"]["containers"][0]["env"].append({"name": k, "value": v})
+            pod_body["spec"]["containers"][0]["env"].append(
+                {"name": k, "value": v})
         if args.entrypoint:
             pod_body["spec"]["containers"][0]["command"] = entrypoint
         pod_body["spec"]["containers"][0]["image"] = args.image
-        v1.create_namespaced_pod(NAMESPACE, pod_body)
+        v1.create_namespaced_pod(NSPACE, pod_body)
 
 
 if args.delete:
     services = v1.list_namespaced_service(
-        NAMESPACE, label_selector=f"training_attempt={args.delete}"
+        NSPACE, label_selector=f"training_attempt={args.delete}"
     )
     for srv in services.items:
-        v1.delete_namespaced_service(srv.metadata.name, NAMESPACE)
+        v1.delete_namespaced_service(srv.metadata.name, NSPACE)
     cms = v1.list_namespaced_config_map(
-        NAMESPACE, label_selector=f"training_attempt={args.delete}"
+        NSPACE, label_selector=f"training_attempt={args.delete}"
     )
     for cm in cms.items:
-        v1.delete_namespaced_config_map(cm.metadata.name, NAMESPACE)
+        v1.delete_namespaced_config_map(cm.metadata.name, NSPACE)
     pods = v1.list_namespaced_pod(
-        NAMESPACE, label_selector=f"training_attempt={args.delete}"
+        NSPACE, label_selector=f"training_attempt={args.delete}"
     )
     for pod in pods.items:
-        v1.delete_namespaced_pod(pod.metadata.name, NAMESPACE)
+        v1.delete_namespaced_pod(pod.metadata.name, NSPACE)
 else:
     if not args.path:
         raise Exception("no script specified")
@@ -165,22 +177,22 @@ else:
         gen_services(NUM_NODES, selector_name)
         print(f"generated with label training_attempt={selector_name}")
     except client.rest.ApiException as e:
-        print("deployment failed, cleaning_up \n",e.body)
+        print("deployment failed, cleaning_up \n", e.body)
         half_created_cms = v1.list_namespaced_config_map(
-            NAMESPACE, label_selector=f"training_attempt={selector_name}"
+            NSPACE, label_selector=f"training_attempt={selector_name}"
         )
         for cm in half_created_cms.items:
             print(f"removing '{cm.metadata.name}' config map")
-            v1.delete_namespaced_config_map(cm.metadata.name, NAMESPACE)
+            v1.delete_namespaced_config_map(cm.metadata.name, NSPACE)
         half_created_pods = v1.list_namespaced_pod(
-            NAMESPACE, label_selector=f"training_attempt={selector_name}"
+            NSPACE, label_selector=f"training_attempt={selector_name}"
         )
         for pod in half_created_pods.items:
             print(f"removing '{pod.metadata.name}' pod")
-            v1.delete_namespaced_pod(pod.metadata.name, NAMESPACE)
+            v1.delete_namespaced_pod(pod.metadata.name, NSPACE)
         half_created_svcs = v1.list_namespaced_service(
-            NAMESPACE, label_selector=f"training_attempt={selector_name}"
+            NSPACE, label_selector=f"training_attempt={selector_name}"
         )
         for svc in half_created_svcs.items:
             print(f"removing '{svc.metadata.name}' service")
-            v1.delete_namespaced_service(svc.metadata.name, NAMESPACE)
+            v1.delete_namespaced_service(svc.metadata.name, NSPACE)
