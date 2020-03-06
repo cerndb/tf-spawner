@@ -153,17 +153,20 @@ if args.delete:
     services = v1.list_namespaced_service(
         NSPACE, label_selector=f"training_attempt={args.delete}"
     )
-    for srv in services.items:
-        v1.delete_namespaced_service(srv.metadata.name, NSPACE)
+    for svc in services.items:
+        print(f"removing '{svc.metadata.name}' service")
+        v1.delete_namespaced_service(svc.metadata.name, NSPACE)
     cms = v1.list_namespaced_config_map(
         NSPACE, label_selector=f"training_attempt={args.delete}"
     )
     for cm in cms.items:
+        print(f"removing '{cm.metadata.name}' config map")
         v1.delete_namespaced_config_map(cm.metadata.name, NSPACE)
     pods = v1.list_namespaced_pod(
         NSPACE, label_selector=f"training_attempt={args.delete}"
     )
     for pod in pods.items:
+        print(f"removing '{pod.metadata.name}' pod")
         v1.delete_namespaced_pod(pod.metadata.name, NSPACE)
 else:
     if not args.path:
