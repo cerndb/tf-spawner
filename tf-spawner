@@ -31,6 +31,8 @@ parser.add_argument("-w", "--workers", help="number of workers", default="8", ty
 parser.add_argument("-n", "--namespace", help="k8s namespace")
 parser.add_argument("-p", "--port", help="grpc port", default="1999", type=int)
 parser.add_argument("-e", "--entrypoint", help="pod entrypoint script path")
+parser.add_argument("-t", "--tag", help="tag resources", default="tf-spawner")
+parser.add_argument("-r", "--randomize-tag", help="create random tag for resources", action="store_true")
 parser.add_argument(
     "-i",
     "--image",
@@ -153,9 +155,12 @@ if args.delete:
 else:
     if not args.path:
         raise Exception("no script specified")
-    selector_name = uuid.uuid4()
     print(f"generating with label training_attempt={selector_name}")
     script_cm = gen_cfmap(args.path, selector_name)
+    if args.randomize_tag:
+        selector_name = str(uuid.uuid4())[:8]
+    else:
+        selector_name = args.tag
     try:
         gen_pods(NUM_NODES, selector_name)
         gen_services(NUM_NODES, selector_name)
