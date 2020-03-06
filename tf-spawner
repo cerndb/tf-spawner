@@ -52,6 +52,8 @@ args = parser.parse_args()
 
 NUM_NODES = args.workers
 GRPC_PORT = args.port
+RED_ESCAPE="\033[91m"
+END_ESCAPE="\033[0m"
 
 config.load_kube_config()
 if args.namespace:
@@ -66,6 +68,10 @@ v1 = client.CoreV1Api()
 
 names = [f"worker{i}:{GRPC_PORT}" for i in range(NUM_NODES)]
 
+
+def print_error(args):
+    toprint = ' '.join(args) if isinstance(args,list) else args
+    print(RED_ESCAPE,toprint,END_ESCAPE,file=sys.stderr)
 
 def gen_tfconfig(names, index):
     # TF_CONFIG={"cluster": {"worker":
@@ -138,7 +144,7 @@ def gen_pods(n_pods, selector_name):
             if env_key in os.environ.keys():
                 env.update({env_key: os.environ[env_key]})
             else:
-                print(f"error: {env_key} is not in the environment")
+                print_error(f"error: {env_key} is not in the environment")
         pod_body["spec"]["containers"][0]["env"] = []
         for k, v in env.items():
             pod_body["spec"]["containers"][0]["env"].append(
@@ -179,9 +185,9 @@ else:
             NSPACE, label_selector=f"training_attempt={selector_name}"
         )
     if len(existing_conf.items) > 0:
-        print(f"\033[91merror: a job with label {selector_name} exists already")
-        print("to remove this error, either use a different tag (-t) or")
-        print("use a random one with -r \033[0m")
+        print_error([f"error: a job with label {selector_name} exists already",
+                     f"to remove this error, either use a different tag (-t) or",
+                     f"use a random one with -r"])
         # if this sys.exit is removed, the script will go on and remove
         # silently a job
         sys.exit()
@@ -191,7 +197,7 @@ else:
         gen_services(NUM_NODES, selector_name)
         print(f"generated with label training_attempt={selector_name}")
     except client.rest.ApiException as e:
-        print("deployment failed, cleaning_up \n", e.body)
+        print_error(["deployment failed, cleaning_up \n", e.body])
         half_created_cms = v1.list_namespaced_config_map(
             NSPACE, label_selector=f"training_attempt={selector_name}"
         )
