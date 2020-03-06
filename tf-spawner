@@ -46,7 +46,7 @@ parser.add_argument(
     "-i",
     "--image",
     help="container image for the pod to use",
-    default="tensorflow/tensorflow:2.0.0b1-py3",
+    default="tensorflow/tensorflow:2.0.1-gpu-py3",
 )
 args = parser.parse_args()
 
