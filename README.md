@@ -1,8 +1,7 @@
 # TF-Spawner
 tf-spawner is a tool to run TensorFlow training distributed on a Kubernetes clusters using 
 multi worker TensorFlow strategy.
-The changes to TensorFlow code to use distributed strategy are minor in TF 2.0, see 
-documentation on [Multi-worker Training with Keras](https://www.tensorflow.org/beta/tutorials/distribute/multi_worker_with_keras)
+TF-spawner assumes the use of tf.distribute, see this link for details on how to use [Multi-worker Training with Keras](https://www.tensorflow.org/beta/tutorials/distribute/multi_worker_with_keras)
 
 Author and contact: Riccardo.Castellotti@cern.ch
 
