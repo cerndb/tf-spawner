@@ -38,6 +38,8 @@ parser.add_argument("-w", "--workers", help="number of workers",
 parser.add_argument("-n", "--namespace", help="k8s namespace")
 parser.add_argument("-p", "--port", help="grpc port", default="1999", type=int)
 parser.add_argument("-e", "--entrypoint", help="pod entrypoint script path")
+parser.add_argument("--podfile", help="path for pod yaml file",
+                    default="pod.yaml")
 parser.add_argument("-t", "--tag", help="tag resources", default="tf-spawner")
 parser.add_argument("-r", "--randomize-tag",
                     help="create random tag for resources",
@@ -52,8 +54,8 @@ args = parser.parse_args()
 
 NUM_NODES = args.workers
 GRPC_PORT = args.port
-RED_ESCAPE="\033[91m"
-END_ESCAPE="\033[0m"
+RED_ESCAPE = "\033[91m"
+END_ESCAPE = "\033[0m"
 
 config.load_kube_config()
 if args.namespace:
@@ -70,8 +72,9 @@ names = [f"worker{i}:{GRPC_PORT}" for i in range(NUM_NODES)]
 
 
 def print_error(args):
-    toprint = ' '.join(args) if isinstance(args,list) else args
-    print(RED_ESCAPE,toprint,END_ESCAPE,file=sys.stderr)
+    toprint = ' '.join(args) if isinstance(args, list) else args
+    print(RED_ESCAPE, toprint, END_ESCAPE, file=sys.stderr)
+
 
 def gen_tfconfig(names, index):
     # TF_CONFIG={"cluster": {"worker":
@@ -102,7 +105,7 @@ def gen_cfmap(script_path, selector_name):
 with open("service.yaml") as service_f:
     service_template = yaml.safe_load(service_f)
 
-with open("pod.yaml") as pod_f:
+with open(args.podfile) as pod_f:
     pod_template = yaml.safe_load(pod_f)
 
 
@@ -186,8 +189,10 @@ else:
         )
     if len(existing_conf.items) > 0:
         print_error([f"error: a job with label {selector_name} exists already",
-                     f"to remove this error, either use a different tag (-t) or",
-                     f"use a random one with -r"])
+                     f"to remove this error, either use a different tag (-t)",
+                     f"or use a random one with -r",
+                     f"you can delete the job that is running with:"])
+        print(f"./tf-spawner -d {selector_name}")
         # if this sys.exit is removed, the script will go on and remove
         # silently a job
         sys.exit()
