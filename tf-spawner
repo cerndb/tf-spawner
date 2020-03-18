@@ -42,13 +42,13 @@ parser.add_argument("--podfile", help="path for pod yaml file",
                     default="pod.yaml")
 parser.add_argument("-t", "--tag", help="tag resources", default="tf-spawner")
 parser.add_argument("-r", "--randomize-tag",
-                    help="create random tag for resources",
+                    help="create random tag for resources (this overrides the -t option)",
                     action="store_true")
 parser.add_argument(
     "-i",
     "--image",
     help="container image for the pod to use",
-    default="tensorflow/tensorflow:2.0.1-gpu-py3",
+    default="tensorflow/tensorflow:2.0.1-py3",
 )
 args = parser.parse_args()
 

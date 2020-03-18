@@ -12,13 +12,10 @@ Install the required package with: `pip3 install kubernetes`
 ## Usage
 
 ```
-usage: tf-spawner [-h] [-d RUN_LABEL] [-w WORKERS] [-n NAMESPACE] [-p PORT]
-                  [-e ENTRYPOINT] [-t TAG] [-r] [-i IMAGE]
-                  [path]
+usage: tf-spawner [-h] [-d RUN_LABEL] [-w WORKERS] [-n NAMESPACE] [-p PORT] [-e ENTRYPOINT] [--podfile PODFILE] [-t TAG] [-r] [-i IMAGE] [path]
 
 positional arguments:
-  path                  full path of the TensorFlow script to run (default:
-                        None)
+  path                  full path of the TensorFlow script to run (default: None)
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -31,11 +28,12 @@ optional arguments:
   -p PORT, --port PORT  grpc port (default: 1999)
   -e ENTRYPOINT, --entrypoint ENTRYPOINT
                         pod entrypoint script path (default: None)
+  --podfile PODFILE     path for pod yaml file (default: pod.yaml)
   -t TAG, --tag TAG     tag resources (default: tf-spawner)
-  -r, --randomize-tag   create random tag for resources (default: False)
+  -r, --randomize-tag   create random tag for resources (this overrides the -t option) (default: False)
   -i IMAGE, --image IMAGE
-                        container image for the pod to use (default:
-                        tensorflow/tensorflow:2.0.1-gpu-py3)
+                        container image for the pod to use (default: tensorflow/tensorflow:2.0.1-py3)
+
 ```
 
 In order to read data from S3-compatible storage, make sure that you are setting in the environment `S3_ENDPOINT`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`, `AWS_LOG_LEVEL`. You can do so modifying the `s3.secrets.example` in the `examples` folder and sourcing it.
