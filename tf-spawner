@@ -39,12 +39,15 @@ parser.add_argument("-w", "--workers", help="number of workers",
 parser.add_argument("-n", "--namespace", help="k8s namespace")
 parser.add_argument("-p", "--port", help="grpc port", default="1999", type=int)
 parser.add_argument("-e", "--entrypoint", help="pod entrypoint script path")
-parser.add_argument("--podfile", help="path for pod yaml file",
+parser.add_argument("--pod-file", help="path for pod yaml file",
                     default="pod.yaml")
 parser.add_argument("-t", "--tag", help="tag resources", default="tf-spawner")
 parser.add_argument("-r", "--randomize-tag",
                     help="create random tag for resources (this overrides the -t option)",
                     action="store_true")
+parser.add_argument("--env-file",
+                    help="path to file containing environment variables to be sourced into every worker",
+                    default="")
 parser.add_argument(
     "-i",
     "--image",
@@ -106,7 +109,7 @@ def gen_cfmap(script_path, selector_name):
 with open("service.yaml") as service_f:
     service_template = yaml.safe_load(service_f)
 
-with open(args.podfile) as pod_f:
+with open(args.pod_file) as pod_f:
     pod_template = yaml.safe_load(pod_f)
 
 
@@ -129,6 +132,14 @@ def gen_services(n_services, selector_name):
         v1.create_namespaced_service(NSPACE, service_body)
 
 
+def add_vars_to_env(env, index, envfile):
+    with open(envfile) as f:
+        for line in f.readlines():
+            var, value = line.strip().split("=", 1)
+            env.update({var: value})
+    return env
+
+
 def gen_pods(n_pods, selector_name):
     if args.entrypoint:
         entrypoint = gen_script(args.entrypoint)
@@ -142,14 +153,7 @@ def gen_pods(n_pods, selector_name):
             "WORKER_NUMBER": str(i),
             "TOT_WORKERS": str(NUM_NODES),
         }
-        for env_key in ["AWS_ACCESS_KEY_ID",
-                        "AWS_SECRET_ACCESS_KEY",
-                        "AWS_LOG_LEVEL",
-                        "S3_ENDPOINT"]:
-            if env_key in os.environ.keys():
-                env.update({env_key: os.environ[env_key]})
-            else:
-                print_error(f"error: {env_key} is not in the environment")
+        env = add_vars_to_env(env, i, args.env_file)
         pod_body["spec"]["containers"][0]["env"] = []
         for k, v in env.items():
             pod_body["spec"]["containers"][0]["env"].append(
