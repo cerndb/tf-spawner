@@ -31,6 +31,7 @@ parser.add_argument("path",
 parser.add_argument(
     "-d", "--delete",
     help="delete resources matching RUN_LABEL",
+    default="tf-spawner",
     metavar="RUN_LABEL"
 )
 parser.add_argument("-w", "--workers", help="number of workers",
