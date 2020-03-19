@@ -113,6 +113,7 @@ with open(args.podfile) as pod_f:
 def gen_script(entrypoint_path):
     with open(entrypoint_path) as script_f:
         lines = script_f.read().splitlines()
+        lines = [x for x in lines if not x.strip() == '']
         sh_script = ["/bin/bash", "-c", "&& ".join(lines)]
         return sh_script
 
