@@ -10,8 +10,8 @@ spec:
     - name: tensorflow
       resources:
         requests:
-          memory: "20Gi"
-          cpu: "3000m"
+          memory: "1Gi"
+          cpu: "1000m"
       env:
       volumeMounts:
       - name: script
@@ -21,3 +21,4 @@ spec:
     - name: script
       configMap:
         name: script
+  restartPolicy: Never
