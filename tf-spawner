@@ -26,28 +26,26 @@ parser = argparse.ArgumentParser(
     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
 parser.add_argument("path",
-                    help="full path of the TensorFlow script to run",
+                    help="path to the TensorFlow script to run",
                     nargs="?")
 parser.add_argument(
     "-d", "--delete",
     help="delete resources matching RUN_LABEL",
-    default="tf-spawner",
-    metavar="RUN_LABEL"
+    action="store_true",
 )
 parser.add_argument("-w", "--workers", help="number of workers",
                     default="8", type=int)
 parser.add_argument("-n", "--namespace", help="k8s namespace")
 parser.add_argument("-p", "--port", help="grpc port", default="1999", type=int)
 parser.add_argument("-e", "--entrypoint", help="pod entrypoint script path")
-parser.add_argument("--pod-file", help="path for pod yaml file",
+parser.add_argument("--pod-file", help="path to pod yaml file",
                     default="pod.yaml")
 parser.add_argument("-t", "--tag", help="tag resources", default="tf-spawner")
 parser.add_argument("-r", "--randomize-tag",
                     help="create random tag for resources (this overrides the -t option)",
                     action="store_true")
 parser.add_argument("--env-file",
-                    help="path to file containing environment variables to be sourced into every worker",
-                    default="")
+                    help="path to file containing environment variables to be sourced into every worker")
 parser.add_argument(
     "-i",
     "--image",
@@ -166,19 +164,19 @@ def gen_pods(n_pods, selector_name):
 
 if args.delete:
     services = v1.list_namespaced_service(
-        NSPACE, label_selector=f"training_attempt={args.delete}"
+        NSPACE, label_selector=f"training_attempt={args.tag}"
     )
     for svc in services.items:
         print(f"removing '{svc.metadata.name}' service")
         v1.delete_namespaced_service(svc.metadata.name, NSPACE)
     cms = v1.list_namespaced_config_map(
-        NSPACE, label_selector=f"training_attempt={args.delete}"
+        NSPACE, label_selector=f"training_attempt={args.tag}"
     )
     for cm in cms.items:
         print(f"removing '{cm.metadata.name}' config map")
         v1.delete_namespaced_config_map(cm.metadata.name, NSPACE)
     pods = v1.list_namespaced_pod(
-        NSPACE, label_selector=f"training_attempt={args.delete}"
+        NSPACE, label_selector=f"training_attempt={args.tag}"
     )
     for pod in pods.items:
         print(f"removing '{pod.metadata.name}' pod")
