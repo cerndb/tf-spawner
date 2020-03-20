@@ -163,24 +163,27 @@ def gen_pods(n_pods, selector_name):
 
 
 if args.delete:
-    services = v1.list_namespaced_service(
-        NSPACE, label_selector=f"training_attempt={args.tag}"
-    )
-    for svc in services.items:
-        print(f"removing '{svc.metadata.name}' service")
-        v1.delete_namespaced_service(svc.metadata.name, NSPACE)
-    cms = v1.list_namespaced_config_map(
-        NSPACE, label_selector=f"training_attempt={args.tag}"
-    )
-    for cm in cms.items:
-        print(f"removing '{cm.metadata.name}' config map")
-        v1.delete_namespaced_config_map(cm.metadata.name, NSPACE)
-    pods = v1.list_namespaced_pod(
-        NSPACE, label_selector=f"training_attempt={args.tag}"
-    )
-    for pod in pods.items:
-        print(f"removing '{pod.metadata.name}' pod")
-        v1.delete_namespaced_pod(pod.metadata.name, NSPACE)
+    print(f"This will delete the resources tagged with: {args.tag}. Confirm with y/[n]")
+    confirmation = input()
+    if confirmation == 'y':
+        services = v1.list_namespaced_service(
+            NSPACE, label_selector=f"training_attempt={args.tag}"
+            )
+        for svc in services.items:
+            print(f"removing '{svc.metadata.name}' service")
+            v1.delete_namespaced_service(svc.metadata.name, NSPACE)
+        cms = v1.list_namespaced_config_map(
+            NSPACE, label_selector=f"training_attempt={args.tag}"
+            )
+        for cm in cms.items:
+            print(f"removing '{cm.metadata.name}' config map")
+            v1.delete_namespaced_config_map(cm.metadata.name, NSPACE)
+        pods = v1.list_namespaced_pod(
+            NSPACE, label_selector=f"training_attempt={args.tag}"
+            )
+        for pod in pods.items:
+            print(f"removing '{pod.metadata.name}' pod")
+            v1.delete_namespaced_pod(pod.metadata.name, NSPACE)
 else:
     if not args.path:
         raise Exception("no script specified")
