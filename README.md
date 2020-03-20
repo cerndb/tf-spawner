@@ -83,7 +83,7 @@ Once the training is done, or in case you wish to run a new job, you will need t
 2. from the description of any of the created resources, e.g. `kubectl describe pod worker0|grep training_attempt | cut -d= -f2`
 
 ## Resources cleanup
-In order to free up the used resources (pods), you have to run `./tf-spawner -d -t run_name` where `run_name` is the value shown during creation. By default, the tag `tf-spawner` is used.
+To free up the used resources (pods, services and configmaps), you have to run `./tf-spawner -d -t run_name` where `run_name` is the value shown during creation. By default, the tag `tf-spawner` is used.
 
 ## Customization 
 
