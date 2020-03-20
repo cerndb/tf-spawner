@@ -25,7 +25,7 @@ from kubernetes import client, config
 parser = argparse.ArgumentParser(
     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-parser.add_argument("path",
+parser.add_argument("training_script_path",
                     help="path to the TensorFlow script to run",
                     nargs="?")
 parser.add_argument(

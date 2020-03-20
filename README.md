@@ -12,19 +12,18 @@ Install the required package with: `pip3 install kubernetes`
 ## Usage
 
 ```
-usage: tf-spawner [-h] [-d] [-w WORKERS] [-n NAMESPACE] [-p PORT]
-                  [-e ENTRYPOINT] [--pod-file POD_FILE] [-t TAG] [-r]
-                  [--env-file ENV_FILE] [-i IMAGE]
-                  [path]
+usage: tf-spawner [-h] [-d] [-w WORKERS] [-n NAMESPACE] [-p PORT] [-e ENTRYPOINT]
+                  [--pod-file POD_FILE] [-t TAG] [-r] [--env-file ENV_FILE] [-i IMAGE]
+                  [training_script_path]
 
 positional arguments:
-  path                  path to the TensorFlow script to run (default: None)
+  training_script_path  path to the TensorFlow script to run (default: None)
 
 optional arguments:
   -h, --help            show this help message and exit
   -d, --delete          delete resources matching RUN_LABEL (default: False)
   -w WORKERS, --workers WORKERS
-                        number of workers (default: 8)
+                        number of workers (default: 2)
   -n NAMESPACE, --namespace NAMESPACE
                         k8s namespace (default: None)
   -p PORT, --port PORT  grpc port (default: 1999)
@@ -32,10 +31,10 @@ optional arguments:
                         pod entrypoint script path (default: None)
   --pod-file POD_FILE   path to pod yaml file (default: pod.yaml)
   -t TAG, --tag TAG     tag resources (default: tf-spawner)
-  -r, --randomize-tag   create random tag for resources (this overrides the -t
-                        option) (default: False)
-  --env-file ENV_FILE   path to file containing environment variables to be
-                        sourced into every worker (default: None)
+  -r, --randomize-tag   create random tag for resources (this overrides the -t option)
+                        (default: False)
+  --env-file ENV_FILE   path to file containing environment variables to be sourced into
+                        every worker (default: None)
   -i IMAGE, --image IMAGE
                         container image for the pod to use (default:
                         tensorflow/tensorflow:2.1.0-py3)
