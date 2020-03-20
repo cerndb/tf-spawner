@@ -28,7 +28,7 @@ optional arguments:
                         k8s namespace (default: None)
   -p PORT, --port PORT  grpc port (default: 1999)
   -c COMMAND, --command COMMAND
-                        path to script to use as pod command (default: None)
+                        path to script to use as pod command/ entrypoint (default: None)
   --pod-file POD_FILE   path to pod yaml file (default: pod.yaml)
   -t TAG, --tag TAG     tag resources (default: tf-spawner)
   -r, --randomize-tag   create random tag for resources (this overrides the -t option)
@@ -39,6 +39,7 @@ optional arguments:
   -i IMAGE, --image IMAGE
                         container image for the pod to use (default:
                         tensorflow/tensorflow:2.1.0-py3)
+
 ```
 
 In order to read data from S3-compatible storage, make sure that you are setting in the environment `S3_ENDPOINT`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`, `AWS_LOG_LEVEL`. You can do so modifying the `s3.secrets.example` in the `examples` folder and passing its path to the `--env-file` option.

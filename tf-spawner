@@ -37,7 +37,7 @@ parser.add_argument("-w", "--workers", help="number of workers",
                     default="2", type=int)
 parser.add_argument("-n", "--namespace", help="k8s namespace")
 parser.add_argument("-p", "--port", help="grpc port", default="1999", type=int)
-parser.add_argument("-c", "--command", help="path to script to use as pod command")
+parser.add_argument("-c", "--command", help="path to script to use as pod command/ entrypoint")
 parser.add_argument("--pod-file", help="path to pod yaml file",
                     default="pod.yaml")
 parser.add_argument("-t", "--tag", help="tag resources", default="tf-spawner")
@@ -139,8 +139,8 @@ def add_vars_to_env(env, index, envfile):
 
 
 def gen_pods(n_pods, selector_name):
-    if args.entrypoint:
-        entrypoint = gen_script(args.entrypoint)
+    if args.command:
+        command = gen_script(args.command)
     for i in range(n_pods):
         pod_body = pod_template
         pod_body["metadata"]["name"] = f"worker{i}"
@@ -157,8 +157,8 @@ def gen_pods(n_pods, selector_name):
         for k, v in env.items():
             pod_body["spec"]["containers"][0]["env"].append(
                 {"name": k, "value": v})
-        if args.entrypoint:
-            pod_body["spec"]["containers"][0]["command"] = entrypoint
+        if args.command:
+            pod_body["spec"]["containers"][0]["command"] = command
         pod_body["spec"]["containers"][0]["image"] = args.image
         v1.create_namespaced_pod(NSPACE, pod_body)
 
