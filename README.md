@@ -12,8 +12,8 @@ Install the required package with: `pip3 install kubernetes`
 ## Usage
 
 ```
-usage: tf-spawner [-h] [-d] [-w WORKERS] [-n NAMESPACE] [-p PORT] [-e ENTRYPOINT]
-                  [--pod-file POD_FILE] [-t TAG] [-r] [--env-file ENV_FILE] [-i IMAGE]
+usage: tf-spawner [-h] [-d] [-w WORKERS] [-n NAMESPACE] [-p PORT] [-c COMMAND]
+                  [--pod-file POD_FILE] [-t TAG] [-r] [-e ENV_FILE] [-i IMAGE]
                   [training_script_path]
 
 positional arguments:
@@ -27,13 +27,14 @@ optional arguments:
   -n NAMESPACE, --namespace NAMESPACE
                         k8s namespace (default: None)
   -p PORT, --port PORT  grpc port (default: 1999)
-  -e ENTRYPOINT, --entrypoint ENTRYPOINT
-                        pod entrypoint script path (default: None)
+  -c COMMAND, --command COMMAND
+                        path to script to use as pod command (default: None)
   --pod-file POD_FILE   path to pod yaml file (default: pod.yaml)
   -t TAG, --tag TAG     tag resources (default: tf-spawner)
   -r, --randomize-tag   create random tag for resources (this overrides the -t option)
                         (default: False)
-  --env-file ENV_FILE   path to file containing environment variables to be sourced into
+  -e ENV_FILE, --env-file ENV_FILE
+                        path to file containing environment variables to be sourced into
                         every worker (default: None)
   -i IMAGE, --image IMAGE
                         container image for the pod to use (default:
@@ -76,6 +77,6 @@ In order to delete the resources, you have to run `./tf-spawner -d -t run_name` 
 ## Customization 
 
 A few customizations are possible:
-* specifying a file where environment variables are specified as an argument to `--env-file`. The format is one couple 'key=value' per line
-* modifying the entrypoint of the TensorFlow containers with the `-e/--entrypoint` argument. Note that, as the script that you pass to tf-spawner is mounted in `/script/training-script.py`, you need to have a line to run it in your entrypoint file
+* specifying a file where environment variables are specified as an argument to `-e/--env-file`. The format is one couple 'key=value' per line
+* modifying the command executed by the TensorFlow containers with the `-c/--command` argument. Note that, as the script that you pass to tf-spawner is mounted in `/script/training-script.py`, you need to have a line to run it in your entrypoint file
 * modifying the template for the pods and the services  
