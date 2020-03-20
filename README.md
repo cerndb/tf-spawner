@@ -41,16 +41,19 @@ optional arguments:
                         tensorflow/tensorflow:2.1.0-py3)
 ```
 
-In order to read data from S3-compatible storage, make sure that you are setting in the environment `S3_ENDPOINT`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`, `AWS_LOG_LEVEL`. You can do so modifying the `s3.secrets.example` in the `examples` folder and sourcing it.
+In order to read data from S3-compatible storage, make sure that you are setting in the environment `S3_ENDPOINT`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`, `AWS_LOG_LEVEL`. You can do so modifying the `s3.secrets.example` in the `examples` folder and passing its path to the `--env-file` option.
 
 
 ## Example
 
-This runs an mnist example
+basic usage:
 ```
-export KUBECONFIG=<path_to_kubectl config file>
-./tf-spawner -w 2 -e examples/entrypoint.sh examples/mnist.py
-#this will output the RUN_LABEL that you will need later for the cleanup of resources
+./tf-spawner examples/mnist.py
+```
+
+when GPUs are available:
+```
+./tf-spawner -w 2 -i tensorflow/tensorflow:2.1.0-gpu-py3 --pod-file pod-gpu.yaml examples/mnist.py
 ```
 
 After launching the training, you can follow the creation of the pods and the training progress with:
@@ -68,11 +71,12 @@ Once the training is done, or in case you wish to run a new job, you will need t
 1. from the output that `tf-spawner` printed when it spawned the training
 2. from the description of any of the created resources, e.g. `kubectl describe pod worker0|grep training_attempt | cut -d= -f2`
 
-Note: In order to use the example in `examples/mnist.py` you will need to provide an image with the 
-TensorFlow_datasets package or to use the entrypoint specified in
-`examples/entrypoint.sh` which installs the package before running the script.
-
 ## Old resources deletion
-In order to delete the resources, you have to run `./tf-spawner -d RUN_LABEL`
-where `run_name` is the value shown during creation
+In order to delete the resources, you have to run `./tf-spawner -d -t run_name` where `run_name` is the value shown during creation. By default, the tag `tf-spawner` is used.
 
+## Customization 
+
+A few customizations are possible:
+* specifying a file where environment variables are specified as an argument to `--env-file`. The format is one couple 'key=value' per line
+* modifying the entrypoint of the TensorFlow containers with the `-e/--entrypoint` argument. Note that, as the script that you pass to tf-spawner is mounted in `/script/training-script.py`, you need to have a line to run it in your entrypoint file
+* modifying the template for the pods and the services  

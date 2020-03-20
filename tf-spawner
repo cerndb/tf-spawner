@@ -34,7 +34,7 @@ parser.add_argument(
     action="store_true",
 )
 parser.add_argument("-w", "--workers", help="number of workers",
-                    default="8", type=int)
+                    default="2", type=int)
 parser.add_argument("-n", "--namespace", help="k8s namespace")
 parser.add_argument("-p", "--port", help="grpc port", default="1999", type=int)
 parser.add_argument("-e", "--entrypoint", help="pod entrypoint script path")
@@ -151,7 +151,8 @@ def gen_pods(n_pods, selector_name):
             "WORKER_NUMBER": str(i),
             "TOT_WORKERS": str(NUM_NODES),
         }
-        env = add_vars_to_env(env, i, args.env_file)
+        if args.env_file:
+            env = add_vars_to_env(env, i, args.env_file)
         pod_body["spec"]["containers"][0]["env"] = []
         for k, v in env.items():
             pod_body["spec"]["containers"][0]["env"].append(
@@ -199,7 +200,7 @@ else:
                      f"to remove this error, either use a different tag (-t)",
                      f"or use a random one with -r",
                      f"you can delete the job that is running with:"])
-        print(f"./tf-spawner -d {selector_name}")
+        print(f"./tf-spawner -d -t {selector_name}")
         # if this sys.exit is removed, the script will go on and remove
         # silently a job
         sys.exit()
