@@ -8,7 +8,6 @@
 
 import tensorflow as tf
 import os
-import time
 
 strategy = tf.distribute.experimental.MultiWorkerMirroredStrategy()
 
@@ -58,8 +57,5 @@ history = model.fit(train_ds, epochs=10,
 print("Finished training.\nNow computing validation loss and accuracy:")
 model.evaluate(test_ds, steps=num_test_samples // VAL_BATCH_SIZE)
 
-sleep_time = 1
-print(f"Finished. Now sleeping {sleep_time} seconds before exit.")
-time.sleep(sleep_time)
 
 exit()
