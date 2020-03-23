@@ -15,7 +15,7 @@ Requirement: TF-Spawner needs access to a Kubernetes cluster, check this with `k
 
 ## Getting Started
 
-This shows a basic example, it attempts to run the MNIST training script with 2 workers:
+This shows a toy example, it attempts to run the MNIST training script with 2 workers:
 ```
 ./tf-spawner examples/mnist.py
 ```
@@ -25,13 +25,18 @@ When GPU resources are available in the Kubernetes cluster:
 ./tf-spawner -w 2 -i tensorflow/tensorflow:2.1.0-gpu-py3 --pod-file pod-gpu.yaml examples/mnist.py
 ```
 
-After launching the training, you can follow the creation of the pods and the training progress with:
+**Monitor execution:** After launching the training, you can follow the creation of the pods and the training progress with:
 ```
 kubectl get pods #you will see your pods called worker{0,1...}
 kubectl logs -f worker0 #to follow the training execution
 ```
-Clean up the resources with `./tf-spawner -d`
+**Clean up:** Free the used resources with `./tf-spawner -d`
 
+**Note:** 
+[training a Particle Classifier](https://github.com/cerndb/SparkDLTrigger/tree/master/Training_TFKeras_CPU_GPU_K8S_Distributed)
+provides a real-world example of TF-Spawner
+  
+---
 ## TF-Spawner usage
 
 ```
@@ -87,9 +92,17 @@ To free up the used resources (pods, services and configmaps), you have to run `
 
 ## Customization 
 
-A few customizations are possible:
+A few important customizations are possible:
 * specifying a file where environment variables are specified as an argument to `-e/--env-file`. The format is one couple 'key=value' per line
 * modifying the command executed by the TensorFlow containers with the `-c/--command` argument.
 This can be used, for example, to add an entrypoint script for environment configuration, such as running pip install.
 Note that, as the script that you pass to tf-spawner is mounted in `/script/training-script.py`, you need to have a line to run it in your entrypoint file
-* modifying the template for the pods and the services 
+* modifying the template for the pods and the services: `pod.yaml` and `pod-gpu.yaml` are provided as example. Review and edit,
+in particular the container resource limit requested.
+
+## Limitations and Caveats
+TF-Spawner is currently an experimental tool.
+- Users will need to make sure that all the requested pods are effectively running, and will have to manually take care of possible failures.
+- At the end of the training, the pods will be found in "Completed" state, users will need then to manually get the information they need, such as training time, from the pods' log file.
+- Similarly, other common operations, such fetching the saved file with trained model or monitoring with TensorBoard will need to be performed manually.
+- These are all relatively easy tasks, but require additional effort and some familiarity with the Kubernetes environment. 
