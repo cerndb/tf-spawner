@@ -1,8 +1,9 @@
 # TF-Spawner
 
 TF-Spawner is an experimental tool for running TensorFlow distributed training on Kubernetes clusters using 
-tf.distributed multi worker strategy (more info at [Multi-worker Training with Keras](https://www.tensorflow.org/tutorials/distribute/multi_worker_with_keras)).  
-TF-Spawner has been developed and used originally for the work on [training a Particle Classifier](https://github.com/cerndb/SparkDLTrigger/tree/master/Training_TFKeras_CPU_GPU_K8S_Distributed)
+tf.distributed multi worker strategy (more info at [multi-worker training with Keras](https://www.tensorflow.org/tutorials/distribute/multi_worker_with_keras)).  
+TF-Spawner has been developed and used originally for the work on
+[Distributed Deep Learning for Physics with TensorFlow and Kubernetes]( https://db-blog.web.cern.ch/blog/luca-canali/2020-03-distributed-deep-learning-physics-tensorflow-and-kubernetes)
 
 Main author and maintainer: Riccardo.Castellotti@cern.ch  
 Contacts: Riccardo.Castellotti@cern.ch, Luca.Canali@cern.ch
@@ -33,8 +34,8 @@ kubectl logs -f worker0 #to follow the training execution
 **Clean up:** Free the used resources with `./tf-spawner -d`
 
 **Note:** 
-[training a Particle Classifier](https://github.com/cerndb/SparkDLTrigger/tree/master/Training_TFKeras_CPU_GPU_K8S_Distributed)
-provides a real-world example of TF-Spawner
+See [training a Particle Classifier](https://github.com/cerndb/SparkDLTrigger/tree/master/Training_TFKeras_CPU_GPU_K8S_Distributed)
+for a full-scale example of how to use TF-Spawner.
   
 ---
 ## TF-Spawner usage
