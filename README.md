@@ -54,7 +54,8 @@ optional arguments:
   -w WORKERS, --workers WORKERS
                         number of workers (default: 2)
   -n NAMESPACE, --namespace NAMESPACE
-                        k8s namespace (default: None)
+                        k8s namespace (if different than the one specified in your
+                        kubeconfig) (default: None)
   -p PORT, --port PORT  grpc port (default: 1999)
   -c COMMAND, --command COMMAND
                         path to script to use as pod command/ entrypoint (default: None)

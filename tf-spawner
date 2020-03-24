@@ -35,7 +35,8 @@ parser.add_argument(
 )
 parser.add_argument("-w", "--workers", help="number of workers",
                     default="2", type=int)
-parser.add_argument("-n", "--namespace", help="k8s namespace")
+parser.add_argument("-n", "--namespace",
+                    help="k8s namespace (if different than the one specified in your kubeconfig)")
 parser.add_argument("-p", "--port", help="grpc port", default="1999", type=int)
 parser.add_argument("-c", "--command", help="path to script to use as pod command/ entrypoint")
 parser.add_argument("--pod-file", help="path to pod yaml file",
