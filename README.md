@@ -78,6 +78,10 @@ To read data from S3-compatible storage, make sure that you are setting in the e
 You can do so editing `envfile.example` in the `examples` folder, and passing it via the `-e` option 
 as `-e examples/envfile.example`.
 
+## TF.distribute variables
+TF-Spawner sets the "TF_CONFIG" envirnoment variable in each container as needed by tf.distribute to create its internal cluster.
+Similarly it also sets the environemnt variables "WORKER_NUMBER" and "TOT_WORKERS"
+
 ## Labeling and deletion
 Resources are tagged by TF-Spawner with a label `training_attempt=RUN_LABEL`.
 This `RUN_LABEL` has a default value, `tf-spawner`.
