@@ -106,7 +106,7 @@ Note that, as the script that you pass to tf-spawner is mounted in `/script/trai
 * modifying the template for the pods and the services: `pod.yaml` and `pod-gpu.yaml` are provided as example. Review and edit,
 in particular the container resource limit requested.
 
-## Limitations and Caveats
+## Limitations and caveats
 TF-Spawner is currently an experimental tool.
 - There is no validation of the user-provided training script, it is simply passed to Python.
 - Users will need to make sure that all the requested pods are effectively running, and will have to manually take care of possible failures.
