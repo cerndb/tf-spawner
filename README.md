@@ -79,8 +79,8 @@ You can do so editing `envfile.example` in the `examples` folder, and passing it
 as `-e examples/envfile.example`.
 
 ## TF.distribute variables
-TF-Spawner sets the "TF_CONFIG" envirnoment variable in each container as needed by tf.distribute to create its internal cluster.
-Similarly it also sets the environemnt variables "WORKER_NUMBER" and "TOT_WORKERS"
+TF-Spawner sets the "TF_CONFIG" envirnonment variable in each container as needed by tf.distribute to create its internal cluster.
+Similarly it also sets the environment variables "WORKER_NUMBER" and "TOT_WORKERS"
 
 ## Labeling and deletion
 Resources are tagged by TF-Spawner with a label `training_attempt=RUN_LABEL`.
@@ -108,6 +108,7 @@ in particular the container resource limit requested.
 
 ## Limitations and Caveats
 TF-Spawner is currently an experimental tool.
+- There is no validation of the user-provided training script, it is simply passed to Python.
 - Users will need to make sure that all the requested pods are effectively running, and will have to manually take care of possible failures.
 - At the end of the training, the pods will be found in "Completed" state, users will need then to manually get the information they need, such as training time, from the pods' log file.
 - Similarly, other common operations, such fetching the saved file with trained model or monitoring with TensorBoard will need to be performed manually.
