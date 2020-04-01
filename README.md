@@ -14,7 +14,7 @@ Download the package: `git clone https://github.com/cerndb/tf-spawner`
 Install the dependencies: `pip3 install kubernetes`  
 Requirement: TF-Spawner needs access to a Kubernetes cluster, check this with `kubectl get nodes`
 
-## Getting Started
+## Getting started
 
 This shows a toy example, it attempts to run the MNIST training script with 2 workers:
 ```
@@ -94,9 +94,11 @@ Once the training is done, or in case you wish to run a new job, you will need t
 2. from the description of any of the created resources, e.g. `kubectl describe pod worker0|grep training_attempt | cut -d= -f2`
 
 ## Resources cleanup
-To free up the used resources (pods, services and configmaps), you have to run `./tf-spawner -d -t run_name` where `run_name` is the value shown during creation. By default, the tag `tf-spawner` is used.
+To free up the used resources (pods, services and configmaps), you have to run `./tf-spawner -d -t run_name` where `run_name` is the value shown during creation.
+By default, the tag `tf-spawner` is used. Note that the deletion command does not wait for resource deletion,
+it will typically take a few seconds, however you can check to see the progress with, for example, `kubectl get pods`.
 
-## Customization 
+## Customizations
 
 A few important customizations are possible:
 * specifying a file where environment variables are specified as an argument to `-e/--env-file`. The format is one couple 'key=value' per line
@@ -106,7 +108,22 @@ Note that, as the script that you pass to tf-spawner is mounted in `/script/trai
 * modifying the template for the pods and the services: `pod.yaml` and `pod-gpu.yaml` are provided as example. Review and edit,
 in particular the container resource limit requested.
 
+## TensorBoard
+
+[TensorBoard](https://www.tensorflow.org/tensorboard) provides monitoring and instrumentation for TensorFlow operations.
+To use TensorBoard with TF-Spawner you can follow these steps:
+- Add TensorBoard callback to model.fit (for tf.keras), example:  
+ `callbacks = [ tf.keras.callbacks.TensorBoard(log_dir='./logs/', profile_batch=0)]`
+- Start TensorBoard on worker0 (the distributed training master node), for example use:  
+  `kubectl exec worker0 -- tensorboard --logdir ./logs &`
+- Forward the TensorBoard port from worker0 to the bastion host:  
+  `kubectl port-forward worker0 6006:6006 &`
+- Make the port forwarded in the previous step on the bastion host visible from your local machine/laptop. For example:  
+  `ssh -i ./.ssh/id_rsa -Lmylaptop:6006:localhost:6006 user@bastionhost`
+- Connect browser (chrome) to the forwarded TensorBoard endpoint, example: `mylaptop:6006`
+
 ## Limitations and caveats
+
 TF-Spawner is currently an experimental tool.
 - There is no validation of the user-provided training script, it is simply passed to Python.
 - Users will need to make sure that all the requested pods are effectively running, and will have to manually take care of possible failures.
