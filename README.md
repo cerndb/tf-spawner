@@ -3,27 +3,40 @@
 TF-Spawner is an experimental tool for running TensorFlow distributed training on Kubernetes clusters using 
 tf.distributed multi worker strategy (more info at [multi-worker training with Keras](https://www.tensorflow.org/tutorials/distribute/multi_worker_with_keras)).  
 TF-Spawner has been developed and used originally for the work on
-[Distributed Deep Learning for Physics with TensorFlow and Kubernetes]( https://db-blog.web.cern.ch/blog/luca-canali/2020-03-distributed-deep-learning-physics-tensorflow-and-kubernetes)
+[Distributed Deep Learning for Physics with TensorFlow and Kubernetes](https://db-blog.web.cern.ch/blog/luca-canali/2020-03-distributed-deep-learning-physics-tensorflow-and-kubernetes)
+See also: [article](https://rdcu.be/b4Wk9) and [GitHub repo](https://github.com/cerndb/SparkDLTrigger)
 
-Main author and maintainer: Riccardo.Castellotti@cern.ch  
-Contacts: Riccardo.Castellotti@cern.ch, Luca.Canali@cern.ch
+Contact and maintainer: Luca.Canali@cern.ch
+Original author: Riccardo Castellotti  
 
 ## Installation
 
 Download the package: `git clone https://github.com/cerndb/tf-spawner`  
-Install the dependencies: `pip3 install kubernetes`  
-Requirement: TF-Spawner needs access to a Kubernetes cluster, check this with `kubectl get nodes`
+Install the dependencies: `pip install kubernetes`  
+Requirement: TF-Spawner needs access to a Kubernetes cluster, check this with: `kubectl get nodes`
 
 ## Getting started
 
 This shows a toy example, it attempts to run the MNIST training script with 2 workers:
 ```
+# run the distributed training 
+# see below TF-Spawner usage for additional run-time options
 ./tf-spawner examples/mnist.py
+
+# monitor the job progress
+kubectl logs -f worker0
+
+# cleanup
+./tf-spawner -d
 ```
 
 When GPU resources are available in the Kubernetes cluster:
 ```
-./tf-spawner -w 2 -i tensorflow/tensorflow:2.1.0-gpu-py3 --pod-file pod-gpu.yaml examples/mnist.py
+# run training with 2 workers on GPUs
+./tf-spawner -w 2 --pod-file pod-gpu.yaml examples/mnist.py
+
+# cleanup
+./tf-spawner -d
 ```
 
 **Monitor execution:** After launching the training, you can follow the creation of the pods and the training progress with:
@@ -67,8 +80,7 @@ optional arguments:
                         path to file containing environment variables to be sourced into
                         every worker (default: None)
   -i IMAGE, --image IMAGE
-                        container image for the pod to use (default:
-                        tensorflow/tensorflow:2.1.0-py3)
+                        container image for the pod to use (default: tensorflow/tensorflow)
 
 ```
 
@@ -88,7 +100,8 @@ This `RUN_LABEL` has a default value, `tf-spawner`.
 You can decide to override it with the `-t` option or to generate a random one with `-r`.
 If both options are present, `-r` is applied.
 
-Once the training is done, or in case you wish to run a new job, you will need to remove the reosurces that are in the cluster. You can do this with: `./tf-spawner -d RUN_LABEL`. There are two ways you can get the RUN\_LABEL:
+Once the training is done, or in case you wish to run a new job, you will need to remove the resources that are in the cluster.
+You can do this with: `./tf-spawner -d RUN_LABEL`. There are two ways you can get the RUN\_LABEL:
 
 1. from the output that `tf-spawner` printed when it spawned the training
 2. from the description of any of the created resources, e.g. `kubectl describe pod worker0|grep training_attempt | cut -d= -f2`
@@ -122,11 +135,17 @@ To use TensorBoard with TF-Spawner you can follow these steps:
   `ssh -i ./.ssh/id_rsa -Lmylaptop:6006:localhost:6006 user@bastionhost`
 - Connect browser (chrome) to the forwarded TensorBoard endpoint, example: `mylaptop:6006`
 
+## Kubernetes Clusters
+
+CERN users can create Kubernetes clusters on CERN private cloud services, see details at [CERN OpenStack documentation](https://clouddocs.web.cern.ch/containers/quickstart.html)  
+Ideally the Kubernetes cluster should have GPU resources for faster training performance.  
+
 ## Limitations and caveats
 
 TF-Spawner is currently an experimental tool.
 - There is no validation of the user-provided training script, it is simply passed to Python.
 - Users will need to make sure that all the requested pods are effectively running, and will have to manually take care of possible failures.
 - At the end of the training, the pods will be found in "Completed" state, users will need then to manually get the information they need, such as training time, from the pods' log file.
-- Similarly, other common operations, such fetching the saved file with trained model or monitoring with TensorBoard will need to be performed manually.
+- Similarly, other common operations, such fetching the saved file with the trained model or monitoring with TensorBoard will need to be performed manually.
 - These are all relatively easy tasks, but require additional effort and some familiarity with the Kubernetes environment. 
+

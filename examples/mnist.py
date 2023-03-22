@@ -4,7 +4,6 @@
 # Credits: adapted from tf.keras tutorials and documentation
 # See also: https://github.com/tensorflow/docs/blob/master/site/en/tutorials/distribute/multi_worker_with_keras.ipynb
 # Environment variables setup for TF_CONFIG is performed externally
-# A time.sleep() call is added to keep the container running after training is finished
 
 import tensorflow as tf
 import os
@@ -21,15 +20,21 @@ x_test = x_test / 255.0
 x_train = x_train.reshape(60000,28,28,1)
 x_test = x_test.reshape(10000,28,28,1)
 
-BATCH_SIZE = 32 * number_workers
-VAL_BATCH_SIZE = 100
-num_train_samples = x_train.shape[0]
-num_test_samples = x_test.shape[0]
+VAL_BATCH_SIZE = 1024
+BATCH_SIZE = 64 * number_workers
+num_epochs = 10
 
-train_ds = tf.data.Dataset.from_tensor_slices((x_train, y_train))
-train_ds = train_ds.shuffle(10000).batch(BATCH_SIZE).cache().repeat()
-test_ds = tf.data.Dataset.from_tensor_slices((x_test, y_test)).cache().repeat()
-test_ds = test_ds.batch(1000)
+train_ds = (tf.data.Dataset
+                   .from_tensor_slices((x_train, y_train))
+                   .shuffle(10000)
+                   .batch(BATCH_SIZE)
+                   .cache()
+           )
+test_ds = (tf.data.Dataset
+                  .from_tensor_slices((x_test, y_test))
+                  .batch(VAL_BATCH_SIZE)
+                  .cache()
+          )
 
 with strategy.scope():
     model = tf.keras.Sequential([
@@ -46,16 +51,14 @@ with strategy.scope():
     ])
     model.summary()
     optimizer = tf.keras.optimizers.Adam()
-    loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
+    loss = tf.keras.losses.sparse_categorical_crossentropy
     model.compile(optimizer=optimizer, loss=loss, metrics=['accuracy'])
 
 print("Now training the distributed model")
-history = model.fit(train_ds, epochs=10,
-                    steps_per_epoch=num_train_samples // BATCH_SIZE,
+history = model.fit(train_ds, epochs = num_epochs,
                     callbacks=[tf.keras.callbacks.EarlyStopping(patience=2, monitor='accuracy')])
 
 print("Finished training.\nNow computing validation loss and accuracy:")
-model.evaluate(test_ds, steps=num_test_samples // VAL_BATCH_SIZE)
-
+model.evaluate(test_ds)
 
 exit()
